@@ -13,7 +13,7 @@ struct x11Displays* enumerateX11Displays()
 
 	auto dispCount = ScreenCount(myDisplay);
 
-	if (dispCount < 0)
+	if (dispCount <= 0)
 	{
 		XCloseDisplay(myDisplay);
 		return nullptr;
@@ -51,6 +51,13 @@ void releaseX11Displays(struct x11Displays* buffer)
 	free(buffer);
 }
 
+static int x11errorHandler(Display* d, XErrorEvent* e)
+{
+	return 0;
+}
+
+static XErrorHandler oldHandler = nullptr;
+
 x11Handle* initX11Display(int display)
 {	
 	Display* maindisplay = XOpenDisplay(NULL);
@@ -66,6 +73,8 @@ x11Handle* initX11Display(int display)
 	retVal->width = 0;
 	retVal->height = 0;
 	retVal->size = 0;
+
+	oldHandler = XSetErrorHandler(x11errorHandler);
 
 	return retVal;
 }
@@ -83,6 +92,12 @@ void releaseFrame(x11Handle* retVal)
 
 void uninitX11Display(x11Handle* retVal)
 {
+	if (oldHandler != nullptr)
+	{
+		XSetErrorHandler(oldHandler);
+		oldHandler = nullptr;
+	}
+
 	if (retVal == nullptr)
 		return;
 

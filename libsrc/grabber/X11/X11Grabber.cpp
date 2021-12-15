@@ -231,6 +231,7 @@ void X11Grabber::stop()
 		{
 			_uninitX11Display(_handle);
 			_handle = nullptr;
+			_initialized = false;
 		}
 		_semaphore.release();
 		Info(_log, "Stopped");
